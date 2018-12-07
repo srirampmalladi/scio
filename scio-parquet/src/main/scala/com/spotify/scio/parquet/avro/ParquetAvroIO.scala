@@ -45,7 +45,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.reflect.ClassTag
 
-final case class ParquetAvroIO[T: ClassTag: Coder](path: String) extends ScioIO[T] {
+final case class ParquetAvroIO[T: ClassTag: Coder]
+    (path: String, rowGroupSize: Int) extends ScioIO[T] {
 
   override type ReadP = ParquetAvroIO.ReadParam[_, T]
   override type WriteP = ParquetAvroIO.WriteParam
@@ -93,6 +94,7 @@ final case class ParquetAvroIO[T: ClassTag: Coder](path: String) extends ScioIO[
                                       destinations,
                                       writerSchema,
                                       job.getConfiguration,
+                                      rowGroupSize,
                                       params.compression)
     val t = WriteFiles.to(sink).withNumShards(params.numShards)
     data.applyInternal(t)
@@ -153,12 +155,14 @@ object ParquetAvroIO {
     private[avro] val DefaultSchema = null
     private[avro] val DefaultNumShards = 0
     private[avro] val DefaultSuffix = ""
+    private[avro] val DefaultRowGroupSize = 10000
     private[avro] val DefaultCompression = CompressionCodecName.SNAPPY
   }
 
   final case class WriteParam private (schema: Schema = WriteParam.DefaultSchema,
                                        numShards: Int = WriteParam.DefaultNumShards,
                                        suffix: String = WriteParam.DefaultSuffix,
+                                       rowGroupSize: Int = WriteParam.DefaultRowGroupSize,
                                        compression: CompressionCodecName =
                                          WriteParam.DefaultCompression)
 }

@@ -134,10 +134,11 @@ package object avro {
       schema: Schema = WriteParam.DefaultSchema,
       numShards: Int = WriteParam.DefaultNumShards,
       suffix: String = WriteParam.DefaultSuffix,
+      rowGroupSize: Int = WriteParam.DefaultRowGroupSize,
       compression: CompressionCodecName = WriteParam.DefaultCompression
     )(implicit ct: ClassTag[T], coder: Coder[T]): Future[Tap[T]] = {
-      val param = WriteParam(schema, numShards, suffix, compression)
-      self.write(ParquetAvroIO[T](path))(param)
+      val param = WriteParam(schema, numShards, suffix, rowGroupSize, compression)
+      self.write(ParquetAvroIO[T](path, rowGroupSize))(param)
     }
   }
 
